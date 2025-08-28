@@ -3,7 +3,7 @@
 Đây là website đầu tiên của tôi được host bằng **GitHub Pages**.
 
 ## 🚀 Link website
-👉 [https://tennguoidung.github.io](https://tennguoidung.github.io)
+👉 [https://hcmutdoanvietduc.github.io](https://hcmutdoanvietduc.github.io)
 
 ## 📌 Nội dung
 - Giới thiệu bản thân
