@@ -1,7 +1,7 @@
 const timersInitial = {
-    study: 60,
-    break: 60,
-    other: 60
+    study: 12 * 60 * 60,
+    break: 8 * 60 * 60,
+    other: 4 * 60 * 60
 };
 
 let remaining = { ...timersInitial };
@@ -62,6 +62,18 @@ function startTimer(name) {
     activeTimer = name;
     endTime = now + remaining[name].time * 1000;
     remaining[name].finishedNotified = false;
+
+    // Unlock audio bằng tương tác người dùng
+    const audio = document.getElementById("alarm-sound");
+    if (audio) {
+        audio.play().then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+        }).catch(e => {
+            console.log("Audio chưa unlock:", e);
+        });
+    }
+
     saveTimers();
 }
 
