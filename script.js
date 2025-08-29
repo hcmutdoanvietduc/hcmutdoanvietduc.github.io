@@ -4,7 +4,7 @@ const timersInitial = {
     other: 4 * 60 * 60
 };
 
-let remaining = { ...timersInitial }; // các đồng hồ đang dừng
+let remaining = { ...timersInitial };
 let activeTimer = null;
 let endTime = null;
 let intervalId = null;
@@ -12,17 +12,16 @@ let intervalId = null;
 // Load dữ liệu từ localStorage
 function loadTimers() {
     const saved = JSON.parse(localStorage.getItem('timerData') || "{}");
+    const savedDate = saved.date;
     const today = new Date().toDateString();
 
-    if (saved.date === today) {
+    if (savedDate === today) {
         remaining = saved.remaining || { ...timersInitial };
         activeTimer = saved.activeTimer;
         endTime = saved.endTime || null;
 
-        // Nếu đồng hồ đang chạy, tính lại thời gian còn lại
         if (activeTimer && endTime) {
-            const now = Date.now();
-            const timeLeft = Math.floor((endTime - now) / 1000);
+            const timeLeft = Math.floor((endTime - Date.now()) / 1000);
             if (timeLeft <= 0) {
                 remaining[activeTimer] = 0;
                 activeTimer = null;
@@ -30,10 +29,8 @@ function loadTimers() {
             }
         }
     } else {
-        // Ngày mới: reset timers
-        remaining = { ...timersInitial };
-        activeTimer = 'break';
-        endTime = Date.now() + remaining.break * 1000;
+        // Ngày mới: reset timers, bắt đầu "Nghỉ ngơi"
+        resetTimers();
     }
     startInterval();
 }
@@ -63,14 +60,20 @@ function updateDisplay() {
 // Bắt đầu đồng hồ
 function startTimer(name) {
     const now = Date.now();
-
     // Tính remaining cho đồng hồ đang chạy
     if (activeTimer && endTime) {
         remaining[activeTimer] = Math.max(0, Math.floor((endTime - now) / 1000));
     }
-
     activeTimer = name;
     endTime = now + remaining[name] * 1000;
+    saveTimers();
+}
+
+// Reset đồng hồ khi sang ngày mới
+function resetTimers() {
+    remaining = { ...timersInitial };
+    activeTimer = 'break';
+    endTime = Date.now() + remaining.break * 1000;
     saveTimers();
 }
 
@@ -78,8 +81,16 @@ function startTimer(name) {
 function startInterval() {
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(() => {
+        const now = Date.now();
+        const today = new Date().toDateString();
+        const savedDate = localStorage.getItem('timerDate');
+
+        // Kiểm tra ngày mới
+        if (savedDate !== today) {
+            resetTimers();
+        }
+
         if (activeTimer && endTime) {
-            const now = Date.now();
             const timeLeft = Math.floor((endTime - now) / 1000);
             if (timeLeft <= 0) {
                 remaining[activeTimer] = 0;
@@ -100,6 +111,7 @@ function saveTimers() {
         endTime,
         remaining
     }));
+    localStorage.setItem('timerDate', new Date().toDateString());
 }
 
 // Khởi tạo
