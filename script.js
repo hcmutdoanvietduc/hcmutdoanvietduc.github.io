@@ -1,7 +1,7 @@
 const timersInitial = {
-    study: 30,
-    break: 30,
-    other: 30
+    study: 12 * 60 * 60,
+    break: 8 * 60 * 60,
+    other: 4 * 60 * 60
 };
 
 let remaining = { ...timersInitial };
