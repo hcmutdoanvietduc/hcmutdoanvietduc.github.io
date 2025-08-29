@@ -130,7 +130,7 @@ function startInterval() {
             const timeLeft = Math.floor((endTime - now) / 1000);
 
             // Thông báo khi còn 5 phút
-            if (!remaining[activeTimer].notified && timeLeft <= 300 && timeLeft > 0) {
+            if (!remaining[activeTimer].notified && timeLeft == 0) {
                 notify("Hẹn giờ sắp hết", `${activeTimer} còn 5 phút!`);
 
                 // Chỉ chuông + rung nếu không phải "break"
