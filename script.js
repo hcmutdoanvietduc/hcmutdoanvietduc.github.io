@@ -1,7 +1,7 @@
 const timersInitial = {
-    study: 1 * 60,
-    break: 1 * 30,
-    other: 1 * 30,
+    study: 60,
+    break: 60,
+    other: 60
 };
 
 let remaining = { ...timersInitial };
@@ -12,9 +12,9 @@ let intervalId = null;
 // Thứ tự vòng lặp
 const order = ['study', 'other', 'break'];
 
-// Thêm thông tin notified để báo 5 phút trước
+// Thêm thông tin finishedNotified để báo khi hết giờ
 for (let key in remaining) {
-    remaining[key] = { time: remaining[key], notified: false };
+    remaining[key] = { time: remaining[key], finishedNotified: false };
 }
 
 // Load dữ liệu từ localStorage
@@ -61,14 +61,14 @@ function startTimer(name) {
     }
     activeTimer = name;
     endTime = now + remaining[name].time * 1000;
-    remaining[name].notified = false;
+    remaining[name].finishedNotified = false;
     saveTimers();
 }
 
 // Reset đồng hồ khi sang ngày mới
 function resetTimers() {
     for (let key in timersInitial) {
-        remaining[key] = { time: timersInitial[key], notified: false };
+        remaining[key] = { time: timersInitial[key], finishedNotified: false };
     }
     activeTimer = 'break';
     endTime = Date.now() + remaining.break.time * 1000;
@@ -83,21 +83,6 @@ function getNextTimer(current) {
         if (remaining[next].time > 0) return next;
     }
     return null;
-}
-
-// Thông báo trình duyệt
-function notify(title, body) {
-    if (!("Notification" in window)) return;
-
-    if (Notification.permission === "granted") {
-        new Notification(title, { body });
-    } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                new Notification(title, { body });
-            }
-        });
-    }
 }
 
 // Phát âm thanh
@@ -129,28 +114,26 @@ function startInterval() {
         if (activeTimer && endTime) {
             const timeLeft = Math.floor((endTime - now) / 1000);
 
-            // Thông báo khi còn 5 phút
-            if (!remaining[activeTimer].notified && timeLeft == 0) {
-                notify("Hẹn giờ sắp hết", `${activeTimer} còn 5 phút!`);
+            // Hết giờ
+            if (timeLeft <= 0 && !remaining[activeTimer].finishedNotified) {
+                remaining[activeTimer].time = 0;
 
-                // Chỉ chuông + rung nếu không phải "break"
-                if (activeTimer !== 'break') {
+                // Kích hoạt chuông/rung khi hết giờ
+                if (activeTimer === 'break') {
+                    vibratePhone(); // chỉ rung
+                } else {
                     playSound();
                     vibratePhone();
                 }
 
-                remaining[activeTimer].notified = true;
-            }
+                remaining[activeTimer].finishedNotified = true;
 
-            // Hết giờ
-            if (timeLeft <= 0) {
-                remaining[activeTimer].time = 0;
-
+                // Chuyển đồng hồ tiếp theo
                 const nextTimer = getNextTimer(activeTimer);
                 if (nextTimer) {
                     activeTimer = nextTimer;
                     endTime = now + remaining[nextTimer].time * 1000;
-                    remaining[nextTimer].notified = false;
+                    remaining[nextTimer].finishedNotified = false;
                 } else {
                     activeTimer = null;
                     endTime = null;
