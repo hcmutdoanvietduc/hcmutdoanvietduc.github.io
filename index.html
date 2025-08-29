@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Hẹn Giờ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Web Hẹn Giờ</h1>
+
+        <div class="timer">
+            <h2>Học</h2>
+            <div id="timer-study" class="time">12:00:00</div>
+            <button onclick="startTimer('study')">Bắt đầu Học</button>
+        </div>
+
+        <div class="timer">
+            <h2>Nghỉ ngơi</h2>
+            <div id="timer-break" class="time">08:00:00</div>
+            <button onclick="startTimer('break')">Bắt đầu Nghỉ ngơi</button>
+        </div>
+
+        <div class="timer">
+            <h2>Làm việc khác</h2>
+            <div id="timer-other" class="time">04:00:00</div>
+            <button onclick="startTimer('other')">Bắt đầu Làm việc khác</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
