@@ -1,13 +1,16 @@
 const timersInitial = {
-    study: 12 * 60 * 60,
-    break: 8 * 60 * 60,
-    other: 4 * 60 * 60
+    study: 12 * 60 * 60,  // 12 giờ
+    break: 8 * 60 * 60,   // 8 giờ
+    other: 4 * 60 * 60    // 4 giờ
 };
 
 let remaining = { ...timersInitial };
 let activeTimer = null;
 let endTime = null;
 let intervalId = null;
+
+// Thứ tự vòng lặp khi đồng hồ hết thời gian
+const order = ['study', 'other', 'break'];
 
 // Load dữ liệu từ localStorage
 function loadTimers() {
@@ -29,7 +32,7 @@ function loadTimers() {
             }
         }
     } else {
-        // Ngày mới: reset timers, bắt đầu "Nghỉ ngơi"
+        // Ngày mới: reset đồng hồ và bắt đầu "Nghỉ ngơi"
         resetTimers();
     }
     startInterval();
@@ -57,7 +60,7 @@ function updateDisplay() {
     });
 }
 
-// Bắt đầu đồng hồ
+// Bắt đầu đồng hồ khi nhấn nút
 function startTimer(name) {
     const now = Date.now();
     // Tính remaining cho đồng hồ đang chạy
@@ -72,9 +75,19 @@ function startTimer(name) {
 // Reset đồng hồ khi sang ngày mới
 function resetTimers() {
     remaining = { ...timersInitial };
-    activeTimer = 'break';
+    activeTimer = 'break';  // "Nghỉ ngơi" bắt đầu chạy
     endTime = Date.now() + remaining.break * 1000;
     saveTimers();
+}
+
+// Tìm đồng hồ tiếp theo trong vòng lặp còn thời gian
+function getNextTimer(current) {
+    const idx = order.indexOf(current);
+    for (let i = 1; i <= order.length; i++) {
+        const next = order[(idx + i) % order.length];
+        if (remaining[next] > 0) return next;
+    }
+    return null; // không còn đồng hồ nào
 }
 
 // Interval 1s
@@ -90,14 +103,25 @@ function startInterval() {
             resetTimers();
         }
 
+        // Đồng hồ đang chạy
         if (activeTimer && endTime) {
             const timeLeft = Math.floor((endTime - now) / 1000);
+
             if (timeLeft <= 0) {
                 remaining[activeTimer] = 0;
-                activeTimer = null;
-                endTime = null;
+
+                // Chuyển sang đồng hồ tiếp theo trong vòng lặp
+                const nextTimer = getNextTimer(activeTimer);
+                if (nextTimer) {
+                    activeTimer = nextTimer;
+                    endTime = now + remaining[nextTimer] * 1000;
+                } else {
+                    activeTimer = null;
+                    endTime = null;
+                }
             }
         }
+
         updateDisplay();
         saveTimers();
     }, 1000);
