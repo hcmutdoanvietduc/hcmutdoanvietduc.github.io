@@ -1,4 +1,3 @@
-// Thời gian ban đầu (giây)
 const timersInitial = {
     study: 12 * 60 * 60,
     break: 8 * 60 * 60,
@@ -8,33 +7,41 @@ const timersInitial = {
 let timers = { ...timersInitial };
 let activeTimer = null;
 let intervalId = null;
+let endTime = null;
 
 // Load trạng thái từ localStorage
 function loadTimers() {
-    const saved = localStorage.getItem('timers');
-    const savedDate = localStorage.getItem('timersDate');
-
+    const saved = JSON.parse(localStorage.getItem('timerData') || "{}");
     const today = new Date().toDateString();
 
-    if (saved && savedDate === today) {
-        timers = JSON.parse(saved);
+    if (saved.date === today) {
+        activeTimer = saved.activeTimer;
+        endTime = saved.endTime;
+        timers = saved.timers || { ...timersInitial };
     } else {
+        // Ngày mới: reset timers
         timers = { ...timersInitial };
-        // Nếu là ngày mới, bắt đầu đồng hồ "Nghỉ ngơi" từ 8h
         activeTimer = 'break';
-        startInterval();
+        endTime = Date.now() + timers.break * 1000;
     }
-    updateDisplay();
+    startInterval();
 }
 
-// Cập nhật hiển thị
+// Update hiển thị
 function updateDisplay() {
-    document.getElementById('timer-study').textContent = formatTime(timers.study);
-    document.getElementById('timer-break').textContent = formatTime(timers.break);
-    document.getElementById('timer-other').textContent = formatTime(timers.other);
+    const now = Date.now();
+    Object.keys(timers).forEach(name => {
+        let remaining;
+        if (name === activeTimer && endTime) {
+            remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+        } else {
+            remaining = timers[name];
+        }
+        document.getElementById(`timer-${name}`).textContent = formatTime(remaining);
+    });
 }
 
-// Format giây thành HH:MM:SS
+// Format giây
 function formatTime(sec) {
     const h = Math.floor(sec / 3600).toString().padStart(2, '0');
     const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
@@ -42,27 +49,30 @@ function formatTime(sec) {
     return `${h}:${m}:${s}`;
 }
 
-// Bắt đầu hẹn giờ cho một loại
+// Start timer
 function startTimer(name) {
     activeTimer = name;
-    if (!intervalId) startInterval();
+    endTime = Date.now() + timers[name] * 1000;
+    saveTimers();
 }
 
 // Interval
 function startInterval() {
+    if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(() => {
-        if (activeTimer && timers[activeTimer] > 0) {
-            timers[activeTimer]--;
-            updateDisplay();
-            saveTimers();
-        }
+        updateDisplay();
+        saveTimers();
     }, 1000);
 }
 
-// Lưu trạng thái
+// Save trạng thái
 function saveTimers() {
-    localStorage.setItem('timers', JSON.stringify(timers));
-    localStorage.setItem('timersDate', new Date().toDateString());
+    localStorage.setItem('timerData', JSON.stringify({
+        date: new Date().toDateString(),
+        activeTimer,
+        endTime,
+        timers
+    }));
 }
 
 // Khởi tạo
