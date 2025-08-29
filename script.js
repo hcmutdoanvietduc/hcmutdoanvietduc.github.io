@@ -1,7 +1,7 @@
 const timersInitial = {
-    study: 12 * 60 * 60,
-    break: 8 * 60 * 60,
-    other: 4 * 60 * 60
+    study: 1 * 60,
+    break: 1 * 30,
+    other: 1 * 30,
 };
 
 let remaining = { ...timersInitial };
@@ -132,8 +132,13 @@ function startInterval() {
             // Thông báo khi còn 5 phút
             if (!remaining[activeTimer].notified && timeLeft <= 300 && timeLeft > 0) {
                 notify("Hẹn giờ sắp hết", `${activeTimer} còn 5 phút!`);
-                playSound();
-                vibratePhone();
+
+                // Chỉ chuông + rung nếu không phải "break"
+                if (activeTimer !== 'break') {
+                    playSound();
+                    vibratePhone();
+                }
+
                 remaining[activeTimer].notified = true;
             }
 
